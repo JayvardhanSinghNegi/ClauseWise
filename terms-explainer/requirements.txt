@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+python-multipart
+pymupdf
+transformers
+torch
+python-dotenv
+huggingface_hub
+hf_xet
+
