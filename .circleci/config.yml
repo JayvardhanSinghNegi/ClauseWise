@@ -1,36 +1,36 @@
-# This config was automatically generated from your source code
-# Stacks detected: deps:python:terms-explainer
 version: 2.1
-orbs:
-  python: circleci/python@2
+
 jobs:
-  test-python:
-    # Install dependencies and run tests
+  build-and-push:
     docker:
-      - image: cimg/python:3.8-node
-    working_directory: ~/project/terms-explainer
+      - image: cimg/python:3.10
     steps:
-      - checkout:
-          path: ~/project
-      - python/install-packages
+      - checkout
+
+      - setup_remote_docker:
+          docker_layer_caching: true
+
       - run:
-          name: Run tests
-          command: pytest --junitxml=junit.xml || ((($? == 5)) && echo 'Did not find any tests to run.')
-      - store_test_results:
-          path: junit.xml
-  deploy:
-    # This is an example deploy job, not actually used by the workflow
-    docker:
-      - image: cimg/base:stable
-    steps:
-      # Replace this with steps to deploy to users
+          name: Install Docker CLI
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends docker-ce-cli
+
       - run:
-          name: deploy
-          command: '#e.g. ./deploy.sh'
+          name: Build Docker image
+          command: |
+            docker build -t $DOCKERHUB_USERNAME/terms-explainer:latest .
+
+      - run:
+          name: Login to Docker Hub
+          command: echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+
+      - run:
+          name: Push Docker image
+          command: docker push $DOCKERHUB_USERNAME/terms-explainer:latest
+
 workflows:
-  build-and-test:
+  version: 2
+  build-and-deploy:
     jobs:
-      - test-python
-    # - deploy:
-    #     requires:
-    #       - test-python
+      - build-and-push
